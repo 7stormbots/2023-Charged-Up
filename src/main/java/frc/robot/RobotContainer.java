@@ -26,7 +26,7 @@ public class RobotContainer {
 
  
   private void configureBindings() {
-    new JoystickButton(driverJoystick, 2).whenPressed(() -> swerveSubsystem.zeroHeading());
+    // new JoystickButton(driverJoystick, 2).on(() -> swerveSubsystem.zeroHeading());
   }
 
  
