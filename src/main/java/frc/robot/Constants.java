@@ -33,6 +33,7 @@ public final class Constants {
     public static final double kDirectionSlewRate = 1.2; // radians per second
     public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
+    // private final Swerve swerveSubsystem = new Swerve();
 
     // Chassis configuration
     public static final double kTrackWidth = Units.inchesToMeters(26.5);
@@ -53,14 +54,17 @@ public final class Constants {
 
     // SPARK MAX CAN IDs
     public static final int kFrontLeftDrivingCanId = 11;
-    public static final int kRearLeftDrivingCanId = 13;
+    public static final int kRearLeftDrivingCanId = 13; // // //
     public static final int kFrontRightDrivingCanId = 15;
-    public static final int kRearRightDrivingCanId = 17;
+    public static final int kRearRightDrivingCanId = 17; //
 
     public static final int kFrontLeftTurningCanId = 10;
-    public static final int kRearLeftTurningCanId = 12;
+    public static final int kRearLeftTurningCanId = 12; //
     public static final int kFrontRightTurningCanId = 14;
-    public static final int kRearRightTurningCanId = 16;
+    public static final int kRearRightTurningCanId = 16; //
+
+    public static final int kArmLift = 18;
+    public static final int kArmExtender = 19;
 
     public static final boolean kGyroReversed = false;
   }
@@ -69,7 +73,7 @@ public final class Constants {
     // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
     // This changes the drive speed of the module (a pinion gear with more teeth will result in a
     // robot that drives faster).
-    public static final int kDrivingMotorPinionTeeth = 14;
+    public static final int kDrivingMotorPinionTeeth = 13;
 
     // Invert the turning encoder, since the output shaft rotates in the opposite direction of
     // the steering motor in the MAXSwerve Module.
@@ -118,7 +122,8 @@ public final class Constants {
 
   public static final class OIConstants {
     public static final int kDriverControllerPort = 0;
-    public static final double kDriveDeadband = 0.05;
+    public static final int kArmControllerPort = 1;
+    public static final double kDriveDeadband = 0.1;
   }
 
   public static final class AutoConstants {
@@ -138,5 +143,47 @@ public final class Constants {
 
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 5676;
+  }
+
+  public static Object Swerve;
+
+
+  public static final class ArmConstants {
+    public static final int liftMotorCanId = 18;
+    public static final int extendMotorCanId = 19;
+
+    public static final int liftMax = 500;
+    public static final int liftMin = 0;
+
+    public static final int extendMax = 250;
+    public static final int extendMin = 0;
+
+    public static double liftMaxVel = 1.75;
+    public static double liftMaxAcc = .75;
+
+    public static double extendMaxVel = 1.75;
+    public static double extendMaxAcc = .75;
+
+    public static double liftKp = .5;
+    public static double liftKi = 0;
+    public static double liftKd = 0;
+
+    public static double extendKp = .5;
+    public static double extendKi = 0;
+    public static double extendKd = 0;
+
+    // public static final int maxLift = 5000;
+    // public static final int minLift = 0;
+
+    // public static final int maxExtend = 2500;
+    // public static final int minExtend = 0;
+  }
+
+  public static final class ClawConstants {
+    public static final int leftServoChannel = 0;
+    public static final int rightServoChannel = 1;
+
+    public static final int openPosition = 0;
+    public static final int closePosition = 20;
   }
 }
