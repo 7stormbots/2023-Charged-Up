@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ClawConstants;
+//import frc.robot.Constants.ClawConstants;
 
 public class ClawSubsystem extends SubsystemBase{
     
@@ -17,14 +17,13 @@ public class ClawSubsystem extends SubsystemBase{
 
     }
 
-
     public void ClawPosition(boolean open){
         if(open){
-            m_leftServo.setPosition(ClawConstants.openPosition);
-            m_rightServo.setPosition(-ClawConstants.openPosition);
+            m_leftServo.setPosition(.75);
+            m_rightServo.setPosition(.25);
         } else {
-            m_leftServo.setPosition(ClawConstants.closePosition);
-            m_rightServo.setPosition(-ClawConstants.closePosition);
+            m_leftServo.setPosition(.25);
+            m_rightServo.setPosition(.75);
         }
     }
 }

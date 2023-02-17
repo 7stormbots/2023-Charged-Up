@@ -152,7 +152,7 @@ public final class Constants {
     public static final int liftMotorCanId = 18;
     public static final int extendMotorCanId = 19;
 
-    public static final int liftMax = 500;
+    public static final int liftMax = 250;
     public static final int liftMin = 0;
 
     public static final int extendMax = 250;
@@ -164,11 +164,11 @@ public final class Constants {
     public static double extendMaxVel = 1.75;
     public static double extendMaxAcc = .75;
 
-    public static double liftKp = .5;
+    public static double liftKp = .25;
     public static double liftKi = 0;
     public static double liftKd = 0;
 
-    public static double extendKp = .5;
+    public static double extendKp = 0;
     public static double extendKi = 0;
     public static double extendKd = 0;
 
@@ -183,7 +183,7 @@ public final class Constants {
     public static final int leftServoChannel = 0;
     public static final int rightServoChannel = 1;
 
-    public static final int openPosition = 0;
-    public static final int closePosition = 20;
+    public static final double openPosition = 0;
+    public static final double closePosition = .5;
   }
 }

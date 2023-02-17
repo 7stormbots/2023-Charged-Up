@@ -1,10 +1,8 @@
 package frc.robot.subsystems;
 
-
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
@@ -30,6 +28,9 @@ public class ArmSubsystem extends SubsystemBase {
         ArmConstants.extendKp, ArmConstants.extendKi, ArmConstants.extendKd, m_extendConstraints);
 
 
+    
+
+
     // public static int liftTargetPosition;
     // public static int extendTargetPosition;
 
@@ -39,6 +40,9 @@ public class ArmSubsystem extends SubsystemBase {
 
         m_liftEncoder = m_liftMotor.getEncoder();
         m_extendEncoder = m_extendMotor.getEncoder();
+
+        // m_liftController.setGoal(0);
+        // m_extendController.setGoal(0);
     }
 
     public void LiftControl(double leftTrigger, double rightTrigger) {
@@ -48,12 +52,14 @@ public class ArmSubsystem extends SubsystemBase {
         // if(liftTargetPosition > ArmConstants.maxLift){
         //     liftTargetPosition = ArmConstants.maxLift;
         // } else if (liftTargetPosition < ArmConstants.minLift){
-        //     liftTargetPosition = ArmConstants.minLift;
+        //     liftTargetPosition = ArmConstants.minLift; // a
         // }
     }
 
     public void LiftMacro(double target){
         m_liftController.setGoal(target);
+        System.out.println("Lift Macro Ran");
+        System.out.println("Lift Target: " + target);
     }
 
     public void ExtendMacro(double target){
