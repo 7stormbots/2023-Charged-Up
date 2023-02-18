@@ -149,41 +149,55 @@ public final class Constants {
 
 
   public static final class ArmConstants {
+
+    // CAN IDs
     public static final int liftMotorCanId = 18;
     public static final int extendMotorCanId = 19;
 
-    public static final int liftMax = 250;
+
+    public static double liftState;
+    public static double extendState;
+
+    public static final int liftHigh = 20;
+    public static final int liftMid = 15;
+    public static final int liftLow = 5;
+    public static final int liftIn = 0;
+
+    public static final int liftMax = 30;
     public static final int liftMin = 0;
 
-    public static final int extendMax = 250;
+    public static final int maxLiftInterval = 10;
+
+    public static final int extendMax = 200;
     public static final int extendMin = 0;
 
-    public static double liftMaxVel = 1.75;
-    public static double liftMaxAcc = .75;
+    public static final int maxExtendInterval = 50;
 
-    public static double extendMaxVel = 1.75;
-    public static double extendMaxAcc = .75;
+    public static double liftMaxVel = 8;
+    public static double liftMaxAcc = 2;
 
-    public static double liftKp = .25;
+    public static double extendMaxVel = 150;
+    public static double extendMaxAcc = 75;
+
+    public static double liftKp = .1;
     public static double liftKi = 0;
     public static double liftKd = 0;
 
-    public static double extendKp = 0;
+    public static double extendKp = .05;
     public static double extendKi = 0;
     public static double extendKd = 0;
-
-    // public static final int maxLift = 5000;
-    // public static final int minLift = 0;
-
-    // public static final int maxExtend = 2500;
-    // public static final int minExtend = 0;
   }
 
   public static final class ClawConstants {
-    public static final int leftServoChannel = 0;
-    public static final int rightServoChannel = 1;
+    public static final int leftServoChannel = 1;
+    public static final int rightServoChannel = 0;
 
-    public static final double openPosition = 0;
-    public static final double closePosition = .5;
+    public static boolean open;
+
+    public static final double openLPosition = .25;
+    public static final double openRPosition = .75;
+
+    public static final double closeLPosition = 1;
+    public static final double closeRPosition = 0;
   }
 }

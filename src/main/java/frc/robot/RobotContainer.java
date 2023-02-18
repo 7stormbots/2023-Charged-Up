@@ -16,7 +16,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.PS4Controller.Button;
+import edu.wpi.first.wpilibj.XboxController.Button;
 import frc.robot.Constants.ArmConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
@@ -25,92 +25,79 @@ import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
-
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 public class RobotContainer {
 
-    private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-    private final ArmSubsystem m_armSubsystem = new ArmSubsystem();
-    private final ClawSubsystem m_clawSubsystem = new ClawSubsystem();
+    public final DriveSubsystem m_robotDrive = new DriveSubsystem();
+    public final ArmSubsystem m_armSubsystem = new ArmSubsystem();
+    public final ClawSubsystem m_clawSubsystem = new ClawSubsystem();
 
     XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
     XboxController m_armController = new XboxController(OIConstants.kArmControllerPort);
 
-
     public RobotContainer() {
-        // Configure the button bindings
         configureButtonBindings();
 
-        // Configure default commands
         m_robotDrive.setDefaultCommand(
-                // The left stick controls translation of the robot.
-                // Turning is controlled by the X axis of the right stick.
-                new RunCommand(
-                        () -> m_robotDrive.drive(
-                                -MathUtil.applyDeadband(m_driverController.getLeftY(), OIConstants.kDriveDeadband),
-                                -MathUtil.applyDeadband(m_driverController.getLeftX(), OIConstants.kDriveDeadband),
-                                -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
-                                false, true),
-                        m_robotDrive));
-
+            new RunCommand(
+            () -> m_robotDrive.drive(
+                -MathUtil.applyDeadband(
+                    m_driverController.getLeftY() * .5,
+                    OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(
+                    m_driverController.getLeftX() * .5,
+                    OIConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(
+                    m_driverController.getRightX() * .75,
+                    OIConstants.kDriveDeadband),
+                false, true),
+            m_robotDrive));
 
         m_armSubsystem.setDefaultCommand(
-               new RunCommand(
-                        () -> m_armSubsystem.update()
-        ));
-
-      //   m_armSubsystem.setDefaultCommand(
-
-      //   new RunCommand(
-      //   () -> m_armSubsystem.LiftControl(
-      //   m_armController.getLeftTriggerAxis(),
-     //    m_armController.getRightTriggerAxis()),
-      //   m_armSubsystem));
-
+            new RunCommand(
+                () -> m_armSubsystem.ManualControl(m_armController.getLeftY(), 
+                m_armController.getRightY())
+            )
+            
+        );
     }
 
-    
+
     private void configureButtonBindings() {
-        new JoystickButton(m_driverController, Button.kR1.value)
-                .whileTrue(new RunCommand(
-                        () -> m_robotDrive.setX(),
-                        m_robotDrive));
+        // Swerve Reset
+        new JoystickButton(m_driverController, Button.kStart.value)
+            .whileTrue(new RunCommand(
+                () -> m_robotDrive.setX(),
+            m_robotDrive));
 
 
-        new JoystickButton(m_armController, Button.kL1.value)
-                .onTrue((new RunCommand(
-                        () -> m_armSubsystem.LiftMacro(ArmConstants.liftMax)
-        )));
+        // Lift Controls
 
-        new JoystickButton(m_armController, Button.kR1.value)
-                .onTrue(new RunCommand(
-                        () -> m_armSubsystem.LiftMacro(ArmConstants.liftMin)
-        ));
+        // Higher
+        new JoystickButton(m_armController, Button.kRightBumper.value)
+                .onTrue((new InstantCommand(
+                        () -> m_armSubsystem.LiftMacro(1))));
 
+        // Lower
+        new JoystickButton(m_armController, Button.kLeftBumper.value)
+                .onTrue(new InstantCommand(
+                        () -> m_armSubsystem.LiftMacro(-1)));
 
-        new JoystickButton(m_armController, Button.kTriangle.value)
-                .onTrue((new RunCommand(
-                        () -> m_armSubsystem.ExtendMacro(ArmConstants.extendMax)
-        )));
-
-        new JoystickButton(m_armController, Button.kSquare.value)
-                .onTrue(new RunCommand(
-                        () -> m_armSubsystem.ExtendMacro(ArmConstants.extendMin)
-        ));
+        // Extend
+        new JoystickButton(m_armController, Button.kA.value)
+                .onTrue((new InstantCommand(
+                        () -> m_armSubsystem.ExtendMacro())));
 
 
-        new JoystickButton(m_armController, Button.kCross.value)
-                .onTrue((new RunCommand(
-                        () -> m_clawSubsystem.ClawPosition(true),
+        // Claw Controls
+        new JoystickButton(m_armController, Button.kA.value)
+                .onTrue((new InstantCommand(
+                        () -> m_clawSubsystem.ClawPosition(),
                         m_clawSubsystem)));
-
-        new JoystickButton(m_armController, Button.kCircle.value)
-                .onTrue(new RunCommand(
-                        () -> m_clawSubsystem.ClawPosition(false),
-                        m_clawSubsystem));
     }
 
     public Command getAutonomousCommand() {
