@@ -16,15 +16,20 @@ public class ClawSubsystem extends SubsystemBase{
 
     }
 
-    public void ClawPosition(){
-        if(ClawConstants.open){
-            m_leftServo.setPosition(ClawConstants.openLPosition);
-            m_rightServo.setPosition(ClawConstants.openRPosition);
-        } else {
-            m_leftServo.setPosition(ClawConstants.closeLPosition);
-            m_rightServo.setPosition(ClawConstants.closeRPosition);
-        }
+    public void ClawPosition(String type){
 
+            if(ClawConstants.open){
+                m_leftServo.setPosition(ClawConstants.openLPosition);
+                m_rightServo.setPosition(ClawConstants.openRPosition);
+            } else {
+                if (type.equals("Cone")){
+                    m_leftServo.setPosition(ClawConstants.coneCloseLPosition);
+                    m_rightServo.setPosition(ClawConstants.coneCloseRPosition);
+                } else {
+                    m_leftServo.setPosition(ClawConstants.cubeCloseLPosition);
+                    m_rightServo.setPosition(ClawConstants.cubeCloseRPosition);
+                }
+            }
         ClawConstants.open = !ClawConstants.open;
     }
 }

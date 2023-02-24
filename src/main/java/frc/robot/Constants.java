@@ -24,6 +24,7 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+
   public static final class DriveConstants {
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
@@ -31,7 +32,7 @@ public final class Constants {
     public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second
 
     public static final double kDirectionSlewRate = 1.2; // radians per second
-    public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
+    public static final double kMagnitudeSlewRate = 1.2; // percent per second (1 = 100%)
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
     // private final Swerve swerveSubsystem = new Swerve();
 
@@ -127,8 +128,8 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 3;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+    public static final double kMaxSpeedMetersPerSecond = 1;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 1;
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 
@@ -139,6 +140,16 @@ public final class Constants {
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
         kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+
+
+    public static final double kTrackWidth = Units.inchesToMeters(26.5);
+    public static final double kWheelBase = Units.inchesToMeters(26.5);
+
+    public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
+      new Translation2d(kWheelBase / 2, kTrackWidth / 2),
+      new Translation2d(kWheelBase / 2, -kTrackWidth / 2),
+      new Translation2d(-kWheelBase / 2, kTrackWidth / 2),
+      new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
   }
 
   public static final class NeoMotorConstants {
@@ -151,41 +162,48 @@ public final class Constants {
   public static final class ArmConstants {
 
     // CAN IDs
-    public static final int liftMotorCanId = 18;
-    public static final int extendMotorCanId = 19;
+    // public static final int lift1MotorCanId = 18;
+    public static final int lift2MotorCanId = 19;
+    public static final int extendMotorCanId = 20;
 
 
     public static double liftState;
     public static double extendState;
 
-    public static final int liftHigh = 20;
-    public static final int liftMid = 15;
-    public static final int liftLow = 5;
+    public static final int liftHigh = 88;
+    public static final int liftMid = 65;
+    public static final int liftLow = 28;
     public static final int liftIn = 0;
 
-    public static final int liftMax = 30;
+    public static final int liftMax = 100;
     public static final int liftMin = 0;
 
-    public static final int maxLiftInterval = 10;
+    public static final int maxLiftInterval = 30;
 
-    public static final int extendMax = 200;
+    public static final int extendMax = 295;
     public static final int extendMin = 0;
 
     public static final int maxExtendInterval = 50;
 
-    public static double liftMaxVel = 8;
-    public static double liftMaxAcc = 2;
+    public static double liftMaxVel = 35;
+    public static double liftMaxAcc = 12;
 
     public static double extendMaxVel = 150;
     public static double extendMaxAcc = 75;
 
-    public static double liftKp = .1;
+    public static double liftKp = .025; // .1
     public static double liftKi = 0;
     public static double liftKd = 0;
 
     public static double extendKp = .05;
     public static double extendKi = 0;
     public static double extendKd = 0;
+
+    public static final IdleMode kLiftMotorIdleMode = IdleMode.kCoast;
+    public static final IdleMode kExtendMotorIdleMode = IdleMode.kBrake;
+
+    public static final int kLiftMotorCurrentLimit = 10;
+    public static final int kExtendMotorCurrentLimit = 10;
   }
 
   public static final class ClawConstants {
@@ -197,7 +215,10 @@ public final class Constants {
     public static final double openLPosition = .25;
     public static final double openRPosition = .75;
 
-    public static final double closeLPosition = 1;
-    public static final double closeRPosition = 0;
+    public static final double coneCloseLPosition = 1;
+    public static final double coneCloseRPosition = 0;
+
+    public static final double cubeCloseLPosition = .6;
+    public static final double cubeCloseRPosition = .3;
   }
 }
