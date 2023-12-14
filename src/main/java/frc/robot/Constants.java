@@ -10,6 +10,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -26,9 +28,14 @@ import edu.wpi.first.math.util.Units;
 public final class Constants {
 
   public static final class DriveConstants {
+    public static double spdLimitFast = .85;
+    public static double turnLimitFast = .8;
+
+    public static double spdLimitSlow = .25;
+    public static double turnLimitSlow = .25;
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
-    public static final double kMaxSpeedMetersPerSecond = 4.8;
+    public static final double kMaxSpeedMetersPerSecond = 4.6;
     public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second
 
     public static final double kDirectionSlewRate = 1.2; // radians per second
@@ -54,18 +61,15 @@ public final class Constants {
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
     // SPARK MAX CAN IDs
-    public static final int kFrontLeftDrivingCanId = 11;
-    public static final int kRearLeftDrivingCanId = 13; // // //
-    public static final int kFrontRightDrivingCanId = 15;
+    public static final int kFrontLeftDrivingCanId = 11; //
+    public static final int kRearLeftDrivingCanId = 13; //
+    public static final int kFrontRightDrivingCanId = 15; // 
     public static final int kRearRightDrivingCanId = 17; //
 
-    public static final int kFrontLeftTurningCanId = 10;
+    public static final int kFrontLeftTurningCanId = 10; //
     public static final int kRearLeftTurningCanId = 12; //
-    public static final int kFrontRightTurningCanId = 14;
+    public static final int kFrontRightTurningCanId = 14; //
     public static final int kRearRightTurningCanId = 16; //
-
-    public static final int kArmLift = 18;
-    public static final int kArmExtender = 19;
 
     public static final boolean kGyroReversed = false;
   }
@@ -129,13 +133,13 @@ public final class Constants {
 
   public static final class AutoConstants {
     public static final double kMaxSpeedMetersPerSecond = 1;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 1;
-    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 1.75;
+    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI / 2;
+    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI / 2;
 
     public static final double kPXController = 1;
-    public static final double kPYController = 1;
-    public static final double kPThetaController = 1;
+    public static final double kPYController = 1.5;
+    public static final double kPThetaController = 10;
 
     // Constraint for the motion profiled robot angle controller
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
@@ -162,63 +166,115 @@ public final class Constants {
   public static final class ArmConstants {
 
     // CAN IDs
-    // public static final int lift1MotorCanId = 18;
-    public static final int lift2MotorCanId = 19;
+    public static final int liftLeftMotorCanId = 18;
+    public static final int liftRightMotorCanId = 19;
     public static final int extendMotorCanId = 20;
+    public static final int wristMotorCanId = 21;
+
+    public static double liftTarget;
 
 
     public static double liftState;
     public static double extendState;
 
-    public static final int liftHigh = 88;
-    public static final int liftMid = 65;
-    public static final int liftLow = 28;
-    public static final int liftIn = 0;
+    public static final int liftHigh = 5900;
+    public static final int liftMid = 5100;
+    public static final int liftLow = 2000;
+    public static final int liftIn = 250;
 
-    public static final int liftMax = 100;
+    public static final int extendToggle = 2000;
+
+    public static final int liftDropIntake = 2970;
+
+    public static final int liftMax = 6200;
     public static final int liftMin = 0;
 
-    public static final int maxLiftInterval = 30;
+    public static final int maxLiftInterval = 500;
 
-    public static final int extendMax = 295;
-    public static final int extendMin = 0;
+    public static double extendMax = 220;
+    public static double extendMin = -15;
 
-    public static final int maxExtendInterval = 50;
+    public static final int maxExtendInterval = 33;
 
-    public static double liftMaxVel = 35;
-    public static double liftMaxAcc = 12;
+    public static final int wristMax = 50;
+    public static final int wristMin = -25;
 
-    public static double extendMaxVel = 150;
-    public static double extendMaxAcc = 75;
+    public static double liftMaxVel = 6500;
+    public static double liftMaxAcc = 4000;
 
-    public static double liftKp = .025; // .1
-    public static double liftKi = 0;
+    public static double extendMaxVel = 200;
+    public static double extendMaxAcc = 200;
+
+    public static double wristMaxVel = 175;
+    public static double wristMaxAcc = 85;
+
+    public static double liftKp = 1.5;
+    public static double liftKi = 1;
     public static double liftKd = 0;
 
-    public static double extendKp = .05;
+    public static double extendKp = .075;
     public static double extendKi = 0;
     public static double extendKd = 0;
 
-    public static final IdleMode kLiftMotorIdleMode = IdleMode.kCoast;
-    public static final IdleMode kExtendMotorIdleMode = IdleMode.kBrake;
+    public static double wristKp = .075;
+    public static double wristKi = .01;
+    public static double wristKd = 0;
 
-    public static final int kLiftMotorCurrentLimit = 10;
-    public static final int kExtendMotorCurrentLimit = 10;
+    public static final IdleMode kExtendMotorIdleMode = IdleMode.kBrake;
+    public static final IdleMode kWristMotorIdleMode = IdleMode.kCoast;
+
+    public static final int kLiftMotorCurrentLimit = 1;
+    public static final int kExtendMotorCurrentLimit = 20;
+    public static final int kWristMotorCurrentLimit = 7;
+
+    public static double liftTicksPerRev = 4096;
+    public static double liftSprocketMultiplier = 7.5625;
+    public static double liftTicksPerSprocketRev = liftTicksPerRev * liftSprocketMultiplier;
+    public static double liftTicksPerDEG = liftTicksPerSprocketRev / 360;
+
+    public static double extendTicksPerRev = 0;
+    public static double extendTicksPerDeg = extendTicksPerRev / 360;
   }
 
   public static final class ClawConstants {
-    public static final int leftServoChannel = 1;
-    public static final int rightServoChannel = 0;
+    public static final int intakeMotorCanId = 22;
+    public static final IdleMode kIntakeMotorIdleMode = IdleMode.kBrake;
+
+    public static final int leftServoChannel = 8;
+    public static final int rightServoChannel = 6;
+    
 
     public static boolean open;
 
-    public static final double openLPosition = .25;
-    public static final double openRPosition = .75;
+    public static final double openLPosition = .4;
+    public static final double openRPosition = calculateRightServo(openLPosition);
 
     public static final double coneCloseLPosition = 1;
-    public static final double coneCloseRPosition = 0;
+    public static final double coneCloseRPosition = calculateRightServo(coneCloseLPosition);
 
     public static final double cubeCloseLPosition = .6;
-    public static final double cubeCloseRPosition = .3;
+    public static final double cubeCloseRPosition = calculateRightServo(cubeCloseLPosition);
+
+    public static double calculateRightServo(double position) {
+      int full = 1;
+
+      double calculated = full - position;
+
+      return calculated;
+    }
+  }
+
+  
+
+  public static final class LimelightConstants {
+    public static final double LimelightMountingAngle = 0; //mounting angle of the camera DEGREES
+    public static final double LimelightMountingHeight = 19.5; //height of camera off the ground INCHES (NOT FINAL VALUE WILL KNOW BEFORE LACROSSE)
+    public static final double TargetHeight = 41.875; //height of high pole off the ground (Mahi still not figured out how to do multiple targets)
+
+    public static double x;  //wrong
+    public static double y;  //wrong
+    public static double area;
+        
+    public static boolean limelightToggle = false;
   }
 }

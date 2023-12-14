@@ -4,21 +4,34 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SerialPort;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Constants.ArmConstants;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.ClawConstants;
+import frc.robot.Constants.LimelightConstants;
 import frc.robot.Constants.OIConstants;
-import frc.robot.autos.TestAuto;
+import frc.robot.commands.AutoBalance;
+import frc.robot.commands.ClawCommander;
+import frc.robot.commands.DriveCommand;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -28,18 +41,15 @@ import frc.robot.autos.TestAuto;
  */
 public class Robot extends TimedRobot {
 
-  public boolean start;
-  public boolean extend;
-  public boolean drop;
-  public boolean unextend;
-  public boolean down;
-  public boolean community;
-  public boolean follow;
 
   private RobotContainer m_robotContainer;
 
 
-  private Command m_autonomousCommand;
+  private Command m_leftAutonomous;
+  private Command m_middleAutonomous;
+  private Command m_rightAutonomous;
+
+  private Command m_testAutonomous;
 
   XboxController m_armController = new XboxController(OIConstants.kArmControllerPort);
 
@@ -50,12 +60,51 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
 
+   public static final String defaultAuto = "Default Autonomous";
+   public static final String leftAuto = "Left Autonomous";
+   public static final String middleAuto = "Middle Autonomous";
+   public static final String rightAuto = "Right Autonomous";
+   public String autoSelected;
+   public static final SendableChooser<String> autoChooser = new SendableChooser<>();
+
+   boolean firstRun;
+
+
+   boolean moveArm = true;
+   boolean firstArmToggle = false;
+   boolean driveForward = false;
+   boolean open = false;
+   boolean unextend = false;
+   boolean firstUnextendToggle = false;
+   boolean resetArm = false;
+   boolean switchMode = false;
+
+   boolean balance = false;
+
+   boolean communityTimerToggle = false;
+   boolean communityTimerFirstToggle = false;
+   boolean community = false;
+   Timer autoTimer;
+
+   boolean auto = false;
+
+
+   boolean done = false;
+
   @Override
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    CameraServer.startAutomaticCapture();
+    CameraServer.startAutomaticCapture(1);
+    m_robotContainer.m_robotDrive.m_gyro.calibrate();
+
+    autoChooser.setDefaultOption("No Autonomous (Default)", defaultAuto);
+    
+    autoChooser.addOption("Left Autonomous", leftAuto);
+    autoChooser.addOption("Middle Autonomous", middleAuto);
+    autoChooser.addOption("Right Autonomous", rightAuto);
+    SmartDashboard.putData("Autos", autoChooser);
   }
 
   /**
@@ -78,148 +127,248 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    ClawConstants.open = false;
     ArmConstants.liftState = 1;
-    ArmConstants.extendState = 0;
-    m_robotContainer.m_clawSubsystem.ClawPosition("Cube");
+    ArmConstants.extendState = 1;
 
-    start = true;
-    extend = false;
-    drop = false;
+    // m_robotContainer.m_robotDrive.autoBalanceToggle = false;
+
+
+    m_robotContainer.m_armSubsystem.auto = false;
+
+    autoSelected = autoChooser.getSelected();
+
+    m_robotContainer.m_robotDrive.zeroHeading();
+
+    // m_rightAutonomous = m_robotContainer.rightAutonomousCommand();
+
+    // if (m_rightAutonomous != null) {
+    //   m_rightAutonomous.schedule();
+    // }
+    ClawConstants.open = false;
+    m_robotContainer.m_clawSubsystem.ClawPosition("Cone");
+  
+
+    m_robotContainer.m_armSubsystem.firstRun = true;
+
+    firstRun = false;
+
+    moveArm = false;
+    firstArmToggle = true;
+    driveForward = false;
+    open = false;
     unextend = false;
-    down = false;
-    community = false;
-    follow = false;
+    resetArm = false;
+    switchMode = false;
+    done = false;
 
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    balance = true;
+    // communityTimerToggle = true;
+    // communityTimerFirstToggle = true;
+    // community = true;
 
-        // schedule the autonomous command (example)
-        if (m_autonomousCommand != null) {
-            m_autonomousCommand.schedule();
-        }
+    // m_robotContainer.m_robotDrive.autoBalanceToggle = false;
+    // LimelightConstants.limelightToggle = false;
+    // m_robotContainer.fieldCentric = false;
+
+
+
+    auto = true;
+
+
+    // m_leftAutonomous = m_robotContainer.forwardAutonomousCommand();
+      m_robotContainer.m_clawSubsystem.m_intakeMotor.set(.075);
   }
 
   @Override
   public void autonomousPeriodic() {
 
-    if(start){
-      m_robotContainer.m_armSubsystem.LiftMacro(ArmConstants.liftHigh, false);
-      start = false;
-      extend = true;
-      drop = false;
-      unextend = false;
-      down = false;
-      community = false;
-      follow = false;
-    }
 
-    if(extend){
-      if(m_robotContainer.m_armSubsystem.m_lift1Encoder.getPosition() >= ArmConstants.liftHigh - 5 && 
-      m_robotContainer.m_armSubsystem.m_lift1Encoder.getPosition() <= ArmConstants.liftHigh + 5){
-        m_robotContainer.m_armSubsystem.ExtendMacro();
-        start = false;
-        extend = false;
-        drop = true;
-        unextend = false;
-        down = false;
-        community = false;
-        follow = false;
+    // switch (autoSelected) {
+    //   case leftAuto:    
+    //   m_leftAutonomous = m_robotContainer.forwardAutonomousCommand();
+    //     break;
+
+    //     case middleAuto:       
+          // m_middleAutonomous = m_robotContainer.leftAutonomousCommand();
+
+          // m_robotContainer.m_clawSubsystem.update();
+          // m_robotContainer.m_armSubsystem.update();
+ 
+    //     break;
+
+    //  case rightAuto:       
+    //    m_rightAutonomous = m_robotContainer.rightAutonomousCommand();
+
+    //    break;
+
+    //  case defaultAuto:
+    //  default: 
+    //       break;
+    // }
+
+     
+
+    // if(auto) {
+      // if (m_leftAutonomous != null) {
+      //   m_leftAutonomous.schedule();
+      // }
+      // auto = false;
+    // }
+       
+
+
+
+      // if(communityTimerToggle) {
+      //   autoTimer = new Timer();
+      //   autoTimer.start();
+      //   communityTimerToggle = false;
+      // }
+      // w
+      // if(community && )
+
+
+
+      // m_robotContainer.m_robotDrive.drive(-.1, 0, 0, false, false);
+
+      // SmartDashboard.putNumber("Auto Timer", autoTimer.get());
+
+      // if(community && communityTimerFirstToggle && autoTimer.get() < 5) {
+      //   m_robotContainer.m_robotDrive.drive(-.1, 0, 0, false, true);
+      // } else if (communityTimerFirstToggle && autoTimer.get() > 5) {
+      //   communityTimerFirstToggle = false;
+      //   m_robotContainer.m_robotDrive.drive(0, 0, 0, false, true);
+      // } else {
+      //   if(community && !communityTimerFirstToggle && autoTimer.get() < 10) {
+      //     m_robotContainer.m_robotDrive.drive(.1, 0, 0, false, true);
+      //   } else {
+      //     m_robotContainer.m_robotDrive.drive(0, 0, 0, false, true);
+      //   }
+      // }
+
+      // if (balance) {
+
+      // }
+
+       if (balance) {
+        double gyroPitch = m_robotContainer.m_robotDrive.m_gyro.getPitch();
+        if(!(Math.abs(gyroPitch) >= 12) && !switchMode) {
+          m_robotContainer.m_robotDrive.autoBalanceToggle = false;
+          m_robotContainer.m_robotDrive.drive(.25, 0, 0, false, true);
+        } else if (Math.abs(gyroPitch) >= 12 && !switchMode) {
+          switchMode = true;
+        } else if (switchMode) {
+          m_robotContainer.m_robotDrive.autoBalanceToggle = true;
+          m_robotContainer.m_robotDrive.drive(0, 0, 0, false, true);
+        }
       }
-    }
+      
 
-    if(drop){
-      if(m_robotContainer.m_armSubsystem.m_extendEncoder.getPosition() >= ArmConstants.extendMax - 10 &&
-      m_robotContainer.m_armSubsystem.m_extendEncoder.getPosition() <= ArmConstants.extendMax + 10){
-      m_robotContainer.m_clawSubsystem.ClawPosition("Cube");
-      start = false;
-      extend = false;
-      drop = false;
-      unextend = true;
-      down = false;
-      community = false;
-      follow = false;
-      }
-    }
-   
+      m_robotContainer.m_clawSubsystem.update();
 
-    if(unextend){
-        m_robotContainer.m_armSubsystem.ExtendMacro();
-        start = false;
-        extend = false;
-        drop = false;
-        unextend = false;
-        down = true;
-        community = false;
-        follow = false;
-    }
-
-    if(down){
-      if(m_robotContainer.m_armSubsystem.m_extendEncoder.getPosition() >= ArmConstants.extendMin - 10 &&
-      m_robotContainer.m_armSubsystem.m_extendEncoder.getPosition() <= ArmConstants.extendMin + 10){
-      m_robotContainer.m_armSubsystem.LiftMacro(ArmConstants.liftIn, true);
-      start = false;
-      extend = false;
-      drop = false;
-      unextend = false;
-      down = false;
-      community = true;
-      follow = false;
-      }
-    }
-
-    if(community) {
-      if(m_robotContainer.m_armSubsystem.m_lift1Encoder.getPosition() >= ArmConstants.liftIn - 10 &&
-      m_robotContainer.m_armSubsystem.m_lift1Encoder.getPosition() <= ArmConstants.liftIn + 10){
-        start = false;
-        extend = false;
-        drop = false;
-        unextend = false;
-        down = false;
-        community = false;
-        follow = true;
-      }
-    }
-
-    if(follow){
-      CommandScheduler.getInstance().run();
-    }
-    
-    m_robotContainer.m_armSubsystem.update();
   }
 
   @Override
   public void teleopInit() {
+
+    if(m_leftAutonomous != null) {
+      m_leftAutonomous.cancel();
+    }
+    if(m_middleAutonomous != null) {
+      m_middleAutonomous.cancel();
+    }
+    if(m_rightAutonomous != null) {
+      m_rightAutonomous.cancel();
+    }
+
+    m_robotContainer.m_armSubsystem.auto = false;
     // ArmSubsystem.liftTargetPosition = 0;
     // ArmSubsystem.extendTargetPosition = 0;
 
+    // m_robotContainer.m_armSubsystem.m_extendController.setGoal(ArmConstants.extendMin);
+
+
+    m_robotContainer.m_robotDrive.autoBalanceToggle = false;
+
+
+    m_robotContainer.m_armSubsystem.m_liftLeftMotor.set(TalonSRXControlMode.Position, 0);
+    ArmConstants.liftTarget = 0;
+
     ArmConstants.liftState = 1;
-    ArmConstants.extendState = 0;
+    ArmConstants.extendState = 1;
+    
 
-    m_robotContainer.spdLimit = .85;
-    m_robotContainer.turnLimit = .9;
+    m_robotContainer.fieldCentric = true;
+    LimelightConstants.limelightToggle = false;
 
+    m_robotContainer.m_armSubsystem.unextend = false;
     ClawConstants.open = false;
     m_robotContainer.m_clawSubsystem.ClawPosition("Cone");
-    
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-  }
+
+    // m_robotContainer.m_armSubsystem.manualOffset = -7;
+    // m_robotContainer.m_armSubsystem.offset = 0;
+
+    // m_robotContainer.m_armSubsystem.homeExtend(true);
+    m_robotContainer.m_armSubsystem.firstRun = true;
+    // m_robotContainer.m_armSubsystem.manualOffset = 5;
+    m_robotContainer.m_armSubsystem.m_liftController.setGoal(m_robotContainer.m_armSubsystem.m_liftLeftMotor.getSelectedSensorPosition() + 100);
+    m_robotContainer.m_armSubsystem.m_extendController.setGoal(ArmConstants.extendMin);
+    m_robotContainer.m_armSubsystem.manualOffset = 0;
   }
 
   @Override
   public void teleopPeriodic() {
 
-    // SmartDashboard.putNumber("AHRS Yaw", m_robotContainer.m_robotDrive.m_gyro.getYaw());
-    // SmartDashboard.putBoolean("IMU_Connected", m_robotContainer.m_robotDrive.m_gyro.isConnected());
-    // SmartDashboard.putBoolean("IMU_IsCalibrating", m_robotContainer.m_robotDrive.m_gyro.isCalibrating());
 
-    if(Math.abs(m_armController.getLeftY()) > .025 || Math.abs(m_armController.getRightY()) > .025){
-      m_robotContainer.m_armSubsystem.ManualControl(-m_armController.getLeftY());
+
+    if(Math.abs(m_robotContainer.m_armController.getLeftY()) > .1 || Math.abs(m_robotContainer.m_armController.getRightY()) > .1){
+      m_robotContainer.m_armSubsystem.ManualControl(-m_armController.getLeftY(), -m_armController.getRightY());
     }
 
-    m_robotContainer.m_armSubsystem.update();
+    if (m_armController.getLeftBumper()) {
+      m_robotContainer.m_armSubsystem.ManualWristLeft();
+    } else if (m_armController.getRightBumper()) {
+      m_robotContainer.m_armSubsystem.ManualWristRight();
+    }
 
-    SmartDashboard.putNumber("Lift Position", m_robotContainer.m_armSubsystem.m_lift1Encoder.getPosition());
+  
+
+    m_robotContainer.m_armSubsystem.update();
+    m_robotContainer.m_clawSubsystem.update();
+
+
+    SmartDashboard.putNumber("AHRS Yaw (DEG)", m_robotContainer.m_robotDrive.m_gyro.getYaw());
+    SmartDashboard.putNumber("AHRS Pitch (DEG)", m_robotContainer.m_robotDrive.m_gyro.getPitch());
+    SmartDashboard.putNumber("AHRS Roll (DEG)", m_robotContainer.m_robotDrive.m_gyro.getRoll());
+
+    // SmartDashboard.putNumber("Lift Position", m_robotContainer.m_armSubsystem.m_liftLeftMotor.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Lift Power", m_robotContainer.m_armSubsystem.m_liftLeftMotor.get());
+    SmartDashboard.putNumber("Lift PID Position Error", 
+    m_robotContainer.m_armSubsystem.m_liftLeftMotor.get() * 2_000);
+
+    // Lift Target -> ArmSubsystem
+
+    SmartDashboard.putNumber("Intake Position", m_robotContainer.m_clawSubsystem.m_intakeEncoder.getCountsPerRevolution());
+
+
     SmartDashboard.putNumber("Extend Position", m_robotContainer.m_armSubsystem.m_extendEncoder.getPosition());
+    SmartDashboard.putNumber("Extend Velocity", m_robotContainer.m_armSubsystem.m_extendEncoder.getVelocity());
+    SmartDashboard.putNumber("Extend Power", m_robotContainer.m_armSubsystem.m_extendMotor.get());
+    // Extend Target -> ArmSubsystem
+    
+    SmartDashboard.putNumber("Wrist Position", m_robotContainer.m_armSubsystem.m_wristEncoder.getPosition());
+    SmartDashboard.putNumber("Wrist Power", m_robotContainer.m_armSubsystem.m_wristMotor.get());
+    // Wrist Target -> ArmSubsystem
+    // Wrist Target (DEG) -> ArmSubsystem
+    // Wrist Manual Offset -> ArmSubsystem
+
+    SmartDashboard.putNumber("IMU -> Wheel Rotation", Math.toDegrees(m_robotContainer.m_robotDrive.inputTranslationDir));
+    SmartDashboard.putNumber("IMU -> Wheel Power", m_robotContainer.m_robotDrive.inputTranslationMag);
+    SmartDashboard.putBoolean("Auto Balance", m_robotContainer.m_robotDrive.autoBalanceToggle);
+
+    SmartDashboard.putBoolean("Vardhan Stinky?", true);
+
+    SmartDashboard.putNumber("Intake Position", m_robotContainer.m_clawSubsystem.m_intakeEncoder.getVelocity());
+
+
   }
 }
